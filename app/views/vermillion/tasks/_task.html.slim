@@ -1,0 +1,35 @@
+p
+  ' ID:
+  = link_to task.id, task
+  br
+  ' Status:
+  = task.status
+  - case task.status
+  - when :running
+    br
+    ' Started
+    = time_tag task.started_at
+    br
+    ' Progress:
+    = task.progress
+    |/
+    = task.total
+  - when :completed
+    br
+    ' Finished:
+    = time_tag task.completed_at
+    br
+    ' Expires:
+    = time_tag task.expired_at
+  - when :failed
+    br
+    ' Progress:
+    = task.progress
+    |/
+    = task.total
+    br
+    ' Finished:
+    = time_tag task.completed_at
+    br
+    ' Expires:
+    = time_tag task.expired_at
