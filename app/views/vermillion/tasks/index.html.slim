@@ -1,7 +1,7 @@
 h1
   | Tasks
 
-- @tasks.index_by(&:status).each do |status, tasks|
+- @tasks.group_by(&:status).each do |status, tasks|
   h2
     = status.to_s.humanize
-  = render tasks
+  = render tasks.sort_by(&:created_at)

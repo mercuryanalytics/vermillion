@@ -8,7 +8,7 @@ module Vermillion
       context "with valid attributes" do
         it "creates a task" do
           expect {
-            post :create, task: FactoryGirl.attributes_for(:vermillion_task)
+            post :create, { url: 'sample.mp4' }
           }.to change(Task, :count).by(1)
         end
 

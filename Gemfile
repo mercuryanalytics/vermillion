@@ -14,6 +14,7 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 gem 'coffee-rails'
+gem 'coffee-rails-source-maps'
 gem 'sass-rails'
 gem 'slim-rails'
 gem 'jbuilder'

@@ -1,6 +1,14 @@
 module Vermillion
   class Task < ActiveRecord::Base
-    validates :definition, presence: true
+    validates :description, presence: true
+
+    EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp"
+    scope :pending_tasks, -> { where(started_at: nil) }
+    scope :expired_tasks, -> { where(EXPIRED_PREDICATE) }
+    scope :ended_tasks, -> { where.not(EXPIRED_PREDICATE) }
+    scope :failed_tasks, -> { ended_tasks.where(failed: true) }
+    scope :completed_tasks, -> { ended_tasks.where(failed: false) }
+    scope :running_tasks, -> { where(completed_at: nil).where.not(started_at: nil) }
 
     def status
       if self.expired?
@@ -12,7 +20,7 @@ module Vermillion
       elsif self.started_at?
         :running
       else
-        :new
+        :pending
       end
     end
 
@@ -41,11 +49,3 @@ module Vermillion
     end
   end
 end
-=begin
-      t.json :definition, null: false
-      t.integer :progress
-      t.integer :total
-      t.datetime :started_at
-      t.datetime :completed_at
-      t.boolean :failed, null: false, default: false
-=end

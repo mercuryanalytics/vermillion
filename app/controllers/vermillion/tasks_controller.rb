@@ -9,7 +9,7 @@ module Vermillion
     end
 
     def create
-      @task = Task.new(task_params)
+      @task = Task.new(description: task_params)
       if @task.valid?
         @task.save
         render nothing: true, status: :accepted, location: @task
@@ -35,16 +35,6 @@ module Vermillion
       end
     end
 
-    def update
-      if @task
-        unless @task.update(task_params)
-          render json: { message: "Update failed", errors: @task.errors }, status: :not_acceptable
-        end
-      else
-        render nothing: true, status: :not_found
-      end
-    end
-
     def destroy
       if @task
         render nothing: true, status: :no_content
@@ -59,7 +49,7 @@ module Vermillion
     end
 
     def task_params
-      params.require(:task).permit(definition: [
+      params.permit(
         :url,
         :filename,
         :startTime,
@@ -77,7 +67,7 @@ module Vermillion
           mean: [],
           up: [],
           down: [],
-          }]}])
+          }]})
     end
   end
 end
