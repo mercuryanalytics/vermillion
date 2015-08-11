@@ -82,7 +82,7 @@ module Vermillion
       end
 
       context "with an expired id" do
-        let (:task) { create(:expired_vermillion_task) }
+        let (:task) { create(:vermillion_task, :expired) }
 
         it "responds with :gone" do
           get :show, id: task.id, format: :json

@@ -2,46 +2,6 @@ require 'rails_helper'
 
 module Vermillion
   RSpec.describe Task, type: :model do
-    context "factories" do
-      it "can create new tasks" do
-        task = build(:vermillion_task)
-        expect(task).to be_valid
-        expect(task.status).to be :pending
-      end
-
-      it "can create running tasks" do
-        task = build(:running_vermillion_task)
-        expect(task).to be_valid
-        expect(task.status).to be :running
-        expect(task.total).to_not be_nil
-        expect(task.progress).to_not be_nil
-        expect(task.progress).to be < task.total
-        expect(task.started_at).to_not be_nil
-      end
-
-      it "can create completed tasks" do
-        task = build(:completed_vermillion_task)
-        expect(task).to be_valid
-        expect(task.status).to be :completed
-        expect(task.progress).to eq task.total
-        expect(task.completed_at).to_not be_nil
-      end
-
-      it "can create failed tasks" do
-        task = build(:failed_vermillion_task)
-        expect(task).to be_valid
-        expect(task.status).to be :failed
-        expect(task.failed?).to be true
-        expect(task.completed_at).to_not be_nil
-      end
-
-      it "can create expired tasks" do
-        task = build(:expired_vermillion_task)
-        expect(task).to be_valid
-        expect(task.status).to be :expired
-      end
-    end
-
     it "is invalid without a description" do
       expect(build(:vermillion_task, description: nil)).not_to be_valid
     end
@@ -61,7 +21,7 @@ module Vermillion
       end
 
       it "updates progress information when work is reported" do
-        task = create(:running_vermillion_task)
+        task = create(:vermillion_task, :running)
         expect(task.progress).to eq 5
         expect(task.total).to eq 10
         expect {
@@ -75,14 +35,14 @@ module Vermillion
       end
 
       it "updates the status when the task is finished" do
-        task = create(:running_vermillion_task)
+        task = create(:vermillion_task, :running)
         task.finish!
         expect(task.progress).to eq task.total
         expect(task.completed_at).to_not be_nil
       end
 
       it "updates the status when the task is failed" do
-        task = create(:running_vermillion_task)
+        task = create(:vermillion_task, :running)
         task.fail!
         expect(task.completed_at).to_not be_nil
         expect(task.failed?).to be true
