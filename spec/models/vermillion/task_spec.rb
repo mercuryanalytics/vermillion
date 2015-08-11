@@ -6,7 +6,7 @@ module Vermillion
       it "can create new tasks" do
         task = build(:vermillion_task)
         expect(task).to be_valid
-        expect(task.status).to be :new
+        expect(task.status).to be :pending
       end
 
       it "can create running tasks" do
@@ -42,8 +42,8 @@ module Vermillion
       end
     end
 
-    it "is invalid without a definition" do
-      expect(build(:vermillion_task, definition: nil)).not_to be_valid
+    it "is invalid without a description" do
+      expect(build(:vermillion_task, description: nil)).not_to be_valid
     end
 
     it "can tell whether the task is expired" do

@@ -13,38 +13,38 @@ module Vermillion
         end
 
         it "responds with :accepted" do
-          post :create, task: FactoryGirl.attributes_for(:vermillion_task)
+          post :create, { url: 'sample.mp4' }
           expect(response).to have_http_status(:accepted)
         end
 
         it "includes a Location header with the url of the task" do
-          post :create, task: FactoryGirl.attributes_for(:vermillion_task)
+          post :create, { url: 'sample.mp4' }
           expect(response.headers['Location']).to start_with("http://test.host/vermillion/tasks/")
         end
       end
 
       context "with invalid attributes" do
-        let(:bad_parameters) { { description: { height: 20, width: 30 }} }
+        let(:bad_parameters) { { height: 20, width: 30 } }
         it "does not create a task" do
           expect {
-            post :create, task: bad_parameters
+            post :create, bad_parameters
           }.not_to change(Task, :count)
         end
 
         it "responds with :not_acceptable" do
-          post :create, task: bad_parameters
+          post :create, bad_parameters
           expect(response).to have_http_status(:not_acceptable)
         end
 
         it "does not include a location header" do
-          post :create, task: bad_parameters
+          post :create, bad_parameters
           expect(response.headers['Location']).to be_nil
         end
 
         it "includes a useful error message" do
-          post :create, task: bad_parameters
+          post :create, {}
           expect(response.headers['Content-Type'].split(/;/).first).to eq 'application/json'
-          expect(JSON.parse(response.body)).to eq("message" => "Validation failed", "errors" => { "definition" => ["can't be blank"] })
+          expect(JSON.parse(response.body)).to eq("message" => "Validation failed", "errors" => { "description" => ["can't be blank"] })
         end
       end
     end
