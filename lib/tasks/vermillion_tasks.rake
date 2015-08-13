@@ -18,12 +18,31 @@ namespace :vermillion do
     end
   end
 
+  def tasks_for(id, scope = :running_tasks)
+    if id
+      [Vermillion::Task.find(id)]
+    else
+      Vermillion::Task.send(scope)
+    end
+  end
+
   desc "Moves task to 'running'"
   task :start, [:id] => :environment do |t,params|
-    if params[:id]
-      Vermillion::Task.find(params[:id]).start!(100)
-    else
-      Vermillion::Task.pending_tasks.each {|task| task.start!(100) }
-    end
+    tasks_for(params[:id], :pending_tasks).each {|task| task.start!(100) }
+  end
+
+  desc "Update progress"
+  task :progress, [:id] => :environment do |t,params|
+    tasks_for(params[:id]).each {|task| task.update_progress(25) }
+  end
+
+  desc "Moves task to 'completed'"
+  task :complete, [:id] => :environment do |t,params|
+    tasks_for(params[:id]).each {|task| task.finish! }
+  end
+
+  desc "Moves task to 'failed'"
+  task :fail, [:id] => :environment do |t,params|
+    tasks_for(params[:id]).each {|task| task.fail! }
   end
 end

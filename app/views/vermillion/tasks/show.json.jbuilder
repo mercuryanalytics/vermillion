@@ -7,10 +7,7 @@ json.task do
     json.started_at @task.started_at.iso8601
     json.progress @task.progress
     json.total @task.total
-  when :completed
-    json.started_at @task.started_at.iso8601
-    json.completed_at @task.completed_at.iso8601
-  when :failed
+  when :completed, :failed
     json.started_at @task.started_at.iso8601
     json.completed_at @task.completed_at.iso8601
     json.progress @task.progress

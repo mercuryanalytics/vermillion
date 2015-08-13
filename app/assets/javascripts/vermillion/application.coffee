@@ -3,7 +3,7 @@ do ->
     CustomEvent = (event, params) ->
       params ||= { bubbles: false, cancelable: false, detail: undefined }
       evt = document.createEvent('CustomEvent')
-      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
       evt
 
     CustomEvent.prototype = window.Event.prototype
@@ -54,31 +54,49 @@ class Task
 
     @element = element.appendChild(tag('li', description, text(' '), status, text(' '), startedAt, text(' '), progress, text(' '), finishedAt))
 
+    future = undefined
+    promise = new Promise (resolve, reject) -> future = { resolve, reject }
+
+    Object.defineProperty @, 'promise',
+      value: promise
+      writable: false
+
     Object.defineProperty @, 'description',
       get: -> JSON.parse(description.innerText)
       set: (v) -> description.innerText = JSON.stringify(v)
 
     Object.defineProperty @, 'status',
       get: -> status.innerText
-      set: (v) -> status.innerText = v
+      set: (v) ->
+        status.innerText = v
+        switch v
+          when 'completed' then future.resolve(this)
+          when 'failed' then future.reject(this)
 
     Object.defineProperty @, 'startedAt',
       get: -> parseTime(startedAt.getAttribute('datetime'))
       set: (v) -> updateTime(startedAt, v)
 
     Object.defineProperty @, 'finishedAt',
-      get: -> s = finishedAt.getAttribute('datetime') ; if s? then new Date(s) else s
+      get: ->
+        s = finishedAt.getAttribute('datetime')
+        if s? then new Date(s) else s
       set: (v) -> updateTime(finishedAt, v)
 
     Object.defineProperty @, 'total',
       get: -> progress.max
-      set: (v) -> v = Number(v); progress.max = if isNaN(v) then 100 else v
+      set: (v) ->
+        v = Number(v)
+        progress.max = if isNaN(v) then 100 else v
 
     Object.defineProperty @, 'progress',
       get: -> progress.value
-      set: (v) -> v = Number(v); if isNaN(v) then progress.removeAttribute('value') else progress.value = v
+      set: (v) ->
+        v = Number(v)
+        if isNaN(v) then progress.removeAttribute('value') else progress.value = v
 
     Object.defineProperty @, 'discard',
+      enumerable: false
       value: =>
         @element.dispatchEvent(new CustomEvent('discarded', bubbles: true, detail: this))
         element.removeChild(@element)
@@ -103,11 +121,11 @@ class Task
             @element.dispatchEvent(new CustomEvent('progress', bubbles: true, detail: this))
             delay(5000).then => @update()
           when 'failed'
-            @element.dispatchEvent(new CustomEvent('failed', bubbles: true, detail: this))
+            @discard() if @element.dispatchEvent(new CustomEvent('failed', bubbles: true, detail: this))
           when 'completed'
-            @element.dispatchEvent(new CustomEvent('completed', bubbles: true, detail: this))
+            @discard() if @element.dispatchEvent(new CustomEvent('completed', bubbles: true, detail: this))
           else
-            console.error "unhandled status", detail.status
+            console?.error "unhandled status", detail.status
         this
       .catch (e) =>
         @discard()
@@ -156,11 +174,13 @@ document.addEventListener "DOMContentLoaded", ->
   tasks = vermillion.start()       # returns an array of task objects
   console.log "start", tasks
 
+  # console.log "running", vermillion.run({ url: "test.mp4" })
+
 # want the following api:
 #    vermillion = new Vermillion(document.body)
-#    task = vermillion.run(description);
-#    task.detail => { status, description, ... }
-#    task.status().then({status, ...})
+#    vermillion.start(window.localStorage, "vermillionTasks")   => [Task]               -- allows attaching event handlers early
+#    task = vermillion.run(description)                         => Task                 -- allows attaching event handlers on launch
+#    {status,description,...} = task                                                    -- accessors for control properties
 #    task.then({detail})
 #    task.catch(error)
 #    vermillion.addEventListener('change', function(event) { {task, href} = event.detail; });

@@ -2,6 +2,8 @@ module Vermillion
   class Task < ActiveRecord::Base
     validates :description, presence: true
 
+    after_create :launch
+
     EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp"
     scope :pending_tasks, -> { where(started_at: nil) }
     scope :expired_tasks, -> { where(EXPIRED_PREDICATE) }
@@ -9,6 +11,10 @@ module Vermillion
     scope :failed_tasks, -> { ended_tasks.where(failed: true) }
     scope :completed_tasks, -> { ended_tasks.where(failed: false) }
     scope :running_tasks, -> { where(completed_at: nil).where.not(started_at: nil) }
+
+    def launch
+      Rails.logger.warn "TODO: Launch task #{self.description.inspect}"
+    end
 
     def status
       if self.expired?
@@ -37,15 +43,21 @@ module Vermillion
     end
 
     def update_progress(n = 1)
-      increment(:progress, n)
+      increment!(:progress, n)
     end
 
-    def finish!
-      update(progress: self.total, completed_at: DateTime.now)
+    def finish!(results = nil)
+      self.description.merge!(results) unless results.nil?
+      self.progress = self.total
+      self.completed_at = DateTime.now
+      save
     end
 
-    def fail!
-      update(completed_at: DateTime.now, failed: true)
+    def fail!(results = nil)
+      self.description.merge!(results) unless results.nil?
+      self.completed_at = DateTime.now
+      self.failed = true
+      save
     end
   end
 end
