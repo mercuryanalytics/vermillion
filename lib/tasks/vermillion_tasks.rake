@@ -20,6 +20,10 @@ namespace :vermillion do
 
   desc "Moves task to 'running'"
   task :start, [:id] => :environment do |t,params|
-    Vermillion::Task.find(params[:id]).start!(100)
+    if params[:id]
+      Vermillion::Task.find(params[:id]).start!(100)
+    else
+      Vermillion::Task.pending_tasks.each {|task| task.start!(100) }
+    end
   end
 end

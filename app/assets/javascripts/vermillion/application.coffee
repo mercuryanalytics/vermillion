@@ -9,136 +9,156 @@ do ->
     CustomEvent.prototype = window.Event.prototype
     window.CustomEvent = CustomEvent
 
-class CustomEventTarget
-  constructor: ->
-    @listeners = {}
+delay = (ms) -> new Promise (resolve, reject) -> setTimeout(resolve, ms)
 
-  addEventListener: (type, callback) ->
-    callbacks = @listeners[type]
-    @listeners[type] = callbacks = [] unless callbacks?
-    index = callbacks.indexOf(callback)
-    return unless index < 0
-    callbacks.push(callback)
-    undefined
+text = (s) -> document.createTextNode(s)
+tag = (name, content..., attrs) ->
+  result = document.createElement(name)
+  result.appendChild(n) for n in content
+  result.setAttribute(k, v) for k,v of attrs when attrs.hasOwnProperty(k)
+  result
 
-  removeEventListener: (type, callback) ->
-    callbacks = @listeners[type]
-    return unless callbacks?
-    index = callbacks.indexOf(callback)
-    callbacks.splice(index, 1) unless index < 0
-    undefined
+timeFormat = new Intl.DateTimeFormat('en-US', { weekday: "short", hour: "numeric", minute: "numeric", second: "numeric" })
+parseTime = (s) -> if s? then new Date(s) else s
+timeTag = (d) -> if d? then tag('time', text(timeFormat.format(d)), datetime: d.toISOString()) else tag('time')
+updateTime = (element, d) ->
+  element.innerText = timeFormat.format(d)
+  element.setAttribute('datetime', d.toISOString())
 
-  dispatchEvent: (event) ->
-    throw Error("event is null.") unless event?
-    throw Error("event is not initialized.") unless event.type
-    callbacks = @listeners[event.type]?.slice(0) || []
-    for callback in callbacks when callbacks.indexOf(callback) >= 0
-      try
-        callback.call(this, event)
-      catch
-        undefined
-    event.defaultPrevented
-
-sleep = (delay) -> new Promise (resolve, reject) -> setTimeout(resolve, delay)
-
-class Task extends CustomEventTarget
-  constructor: (url) ->
-    Object.defineProperty @, 'url', get: -> url
-
-  update: ->
-    $this = this
-    fetch(@url, headers: { 'Accept': 'application/json' })
-      .then (response) ->
-        switch response.status
-          when 200 then response.json()
-          when 410 then throw new Error("Gone")
-          else throw new Error(response.statusText)
-      .then (message) ->
-        $this.detail = message.task
-        $this.dispatchEvent(new CustomEvent('progress', detail: $this)) if $this.detail.status == 'running'
-
-class TaskMemory extends CustomEventTarget
-  constructor: (@service, @storage, @storageKey = "vermillionTasks") ->
-    super()
-    @runningTasks = (new Task(url) for url in @taskUrls())
-    for task in @runningTasks.slice()
-      task.update()
-        .then (status) =>
-          @scheduleUpdateFor(task) unless @service.dispatchEvent(new CustomEvent('discovered', cancelable: true, detail: task))
-        .catch (error) =>
-          console.log "discard", task.url, error.message
-          @removeTask(task)
-
-  scheduleUpdateFor: (task) ->
-    task.update().then (detail) ->
-      console.log "updated to", task.detail
-      switch task.detail.status || 'pending'
-        when 'pending'
-          sleep(500).then => @scheduleUpdateFor(task)
-          console.log "rescheduled (pending)"
-        when 'failed'
-          # notify and stop tracking
-          console.log "notify failed"
-        when 'completed'
-          # notify and stop tracking
-          console.log "notify completed"
-        when 'running'
-          # notify progress
-          @dispatchEvent(new CustomEvent('progress', cancelable: true, detail: task))
-          sleep(5000).then => @scheduleUpdateFor(task)
-
-  updateStorage: ->
-    @storage.setItem @storageKey, JSON.stringify(task.url for task in @runningTasks)
-
-  taskUrls: -> 
-    JSON.parse(@storage.getItem(@storageKey) || "[]")
-
-  addTask: (task) ->
-    @runningTasks.push(task)
-    @scheduleUpdateFor(task)
-    @updateStorage()
-
-  removeTask: (task) ->
-    index = @runningTasks.indexOf(task)
-    @runningTasks.splice(index, 1) unless index < 0
-    @updateStorage()
+showTask = (url) ->
+  fetch(url, headers: { 'Accept': 'application/json' })
+    .then (response) ->
+      switch response.status
+        when 200 then response.json()
+        when 410 then throw new Error("Gone")
+        else throw new Error(response.statusText)
 
 createTask = (description) ->
   fetch "/vermillion/tasks",
-    method: 'post'
-    headers: 
-      'Content-Type': 'application/json'
-      'Accept': 'application/json'
-    body: JSON.stringify(description)
-
-class @Vermillion extends CustomEventTarget
-  start: (storage) ->
-    @taskMemory = new TaskMemory(this, storage)
-    @taskMemory.addEventListener 'discovered', (event) =>
-      event.preventDefault() if @dispatchEvent(new CustomEvent('discovered', cancelable: true, detail: event.detail))
-
-  run: (description) ->
-    createTask(description).then (response) =>
+      method: 'post'
+      headers: 
+        'Content-Type': 'application/json'
+        'Accept': 'application/json'
+      body: JSON.stringify(description)
+    .then (response) ->
       throw new Error(response.status + " " + response.statusText) unless response.status == 202
-      url = response.headers.get('Location')
-      task = new Task(url)
-      @taskMemory.addTask(task)
-      task
+      response.headers.get('Location')
 
-test = new @Vermillion()
-test.start(localStorage)
-test.addEventListener 'discovered', (event) ->
-  console.warn "discovered", event.detail
+class Task
+  constructor: (element, @url) ->
+    description = tag('a', href: @url)
+    status = tag('span', text('pending'))
+    startedAt = timeTag()
+    progress = tag('progress')
+    finishedAt = timeTag()
 
-if true
-  test.run url: 'test.mp4'
-    .then (task) ->
-      console.log "task", task.url
-      task.update().then (detail) ->
-        console.log "detail", detail
+    @element = element.appendChild(tag('li', description, text(' '), status, text(' '), startedAt, text(' '), progress, text(' '), finishedAt))
+
+    Object.defineProperty @, 'description',
+      get: -> JSON.parse(description.innerText)
+      set: (v) -> description.innerText = JSON.stringify(v)
+
+    Object.defineProperty @, 'status',
+      get: -> status.innerText
+      set: (v) -> status.innerText = v
+
+    Object.defineProperty @, 'startedAt',
+      get: -> parseTime(startedAt.getAttribute('datetime'))
+      set: (v) -> updateTime(startedAt, v)
+
+    Object.defineProperty @, 'finishedAt',
+      get: -> s = finishedAt.getAttribute('datetime') ; if s? then new Date(s) else s
+      set: (v) -> updateTime(finishedAt, v)
+
+    Object.defineProperty @, 'total',
+      get: -> progress.max
+      set: (v) -> v = Number(v); progress.max = if isNaN(v) then 100 else v
+
+    Object.defineProperty @, 'progress',
+      get: -> progress.value
+      set: (v) -> v = Number(v); if isNaN(v) then progress.removeAttribute('value') else progress.value = v
+
+    Object.defineProperty @, 'discard',
+      value: =>
+        @element.dispatchEvent(new CustomEvent('discarded', bubbles: true, detail: this))
+        element.removeChild(@element)
+
+  addEventListener: -> @element.addEventListener(arguments...)
+  removeEventListener: -> @element.removeEventListener(arguments...)
+  dispatchEvent: -> @element.dispatchEvent(arguments...)
+
+  update: ->
+    showTask(@url)
+      .then ({task: detail}) =>
+        @description = detail.description
+        @status = detail.status
+        @startedAt = new Date(detail.started_at) if detail.started_at?
+        @finishedAt = new Date(detail.started_at) if detail.finished_at?
+        @total = detail.total
+        @progress = detail.progress
+        switch detail.status
+          when 'pending'
+            delay(500).then => @update()
+          when 'running'
+            @element.dispatchEvent(new CustomEvent('progress', bubbles: true, detail: this))
+            delay(5000).then => @update()
+          when 'failed'
+            @element.dispatchEvent(new CustomEvent('failed', bubbles: true, detail: this))
+          when 'completed'
+            @element.dispatchEvent(new CustomEvent('completed', bubbles: true, detail: this))
+          else
+            console.error "unhandled status", detail.status
+        this
+      .catch (e) =>
+        @discard()
+        @
+
+trackedUrls = (storage, storageKey) -> JSON.parse(storage.getItem(storageKey) || "[]")
+updateTrackedUrls = (storage, storageKey, tasks) ->
+  if tasks.length == 0
+    storage.removeItem storageKey
+  else
+    storage.setItem storageKey, JSON.stringify(tasks)
+
+class @Vermillion
+  constructor: (element) ->
+    @_element = element.appendChild(tag('ul'))
+    @_element.addEventListener 'discarded', (event) =>
+      event.stopPropagation()
+      delete @_tasks[event.detail.url]
+      @updateTrackedUrls()
+    @_tasks = {}
+
+  updateTrackedUrls: -> updateTrackedUrls(@storage, @storageKey, Object.keys(@_tasks))
+
+  track: (url) ->
+    task = @_tasks[url] = new Task(@_element, url)
+    @updateTrackedUrls()
+    task.update()
+
+  start: (@storage = localStorage, @storageKey = "vermillionTasks") ->
+    @_tasks[url] = new Task(@_element, url) for url in trackedUrls(@storage, @storageKey)
+    delay(0).then => @update()
+    task for url, task of @_tasks
+
+  update: -> (task.update() for url, task of @_tasks)
+
+  run: (description) -> createTask(description).then (url) => @track(url)
+
+#################################### THE FOLLOWING IS FOR TESTING, AND SIMULATES WHAT THE HOST PAGE WILL DO #####################################
+logEvents = (event) -> console.log "CONTAINER SAW EVENT", event.type, event
+
+document.addEventListener "DOMContentLoaded", ->
+  div = document.body.insertBefore(tag('div'), document.body.firstChild)
+  div.addEventListener 'discarded', logEvents
+  div.addEventListener 'progress', logEvents
+  window.vermillion = new Vermillion(div)
+  tasks = vermillion.start()       # returns an array of task objects
+  console.log "start", tasks
 
 # want the following api:
-#    task = vermillion.run({description});
+#    vermillion = new Vermillion(document.body)
+#    task = vermillion.run(description);
 #    task.detail => { status, description, ... }
 #    task.status().then({status, ...})
 #    task.then({detail})
