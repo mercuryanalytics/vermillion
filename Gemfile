@@ -18,3 +18,7 @@ gem 'coffee-rails-source-maps'
 gem 'sass-rails'
 gem 'slim-rails'
 gem 'jbuilder'
+
+group :test do
+  gem 'shoulda-matchers', require: false
+end

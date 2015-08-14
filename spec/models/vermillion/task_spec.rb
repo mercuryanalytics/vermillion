@@ -2,12 +2,10 @@ require 'rails_helper'
 
 module Vermillion
   RSpec.describe Task, type: :model do
-    it "is invalid without a description" do
-      expect(build(:vermillion_task, description: nil)).not_to be_valid
-    end
+    it { is_expected.to validate_presence_of :description }
 
     it "can tell whether the task is expired" do
-      expect(build(:vermillion_task, progress: 10, total: 10, started_at: (10.days + 20.minutes).ago, completed_at: 10.days.ago)).to be_expired
+      expect(build(:vermillion_task, :expired)).to be_expired
     end
 
     context "life cycle" do
