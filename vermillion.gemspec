@@ -13,7 +13,6 @@ Gem::Specification.new do |s|
   s.summary     = "Summary of Vermillion."
   s.description = "Description of Vermillion."
   s.license     = "MIT"
-  s.executables = ["ffmpeg", "ffprobe"]
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
