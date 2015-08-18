@@ -23,6 +23,10 @@ module Vermillion
       @job ||= "#{name}_job".camelize.constantize
     end
 
+    def perform_later(*args)
+      job.perform_later(self, *args)
+    end
+
     def status
       if self.expired?
         :expired

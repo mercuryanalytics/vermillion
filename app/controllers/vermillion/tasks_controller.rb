@@ -14,7 +14,7 @@ module Vermillion
       @task = Task.new(name: name, description: description)
       if @task.valid?
         @task.save
-        @task.job.perform_later
+        @task.perform_later
         render nothing: true, status: :accepted, location: @task
       else
         render json: { message: "Validation failed", errors: @task.errors }, status: :not_acceptable
