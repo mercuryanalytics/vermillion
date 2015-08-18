@@ -9,7 +9,7 @@ RSpec.configure do |config|
 
     begin
       DatabaseCleaner.start
-      FactoryGirl.lint
+      # FactoryGirl.lint
     ensure
       DatabaseCleaner.clean
     end

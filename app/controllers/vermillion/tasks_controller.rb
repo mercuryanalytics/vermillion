@@ -9,9 +9,12 @@ module Vermillion
     end
 
     def create
-      @task = Task.new(description: task_params)
+      description = task_params
+      name = params[:name]
+      @task = Task.new(name: name, description: description)
       if @task.valid?
         @task.save
+        @task.job.perform_later
         render nothing: true, status: :accepted, location: @task
       else
         render json: { message: "Validation failed", errors: @task.errors }, status: :not_acceptable
@@ -49,7 +52,7 @@ module Vermillion
     end
 
     def task_params
-      params.permit(
+      params.require(:description).permit(
         :url,
         :filename,
         :startTime,

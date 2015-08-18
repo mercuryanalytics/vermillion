@@ -9,6 +9,11 @@ module Vermillion
     end
 
     context "life cycle" do
+      it "is initially pending" do
+        task = create(:vermillion_task)
+        expect(task.status).to be :pending
+      end
+
       it "updates the status when the task is started" do
         task = create(:vermillion_task)
         task.start!(100)
@@ -45,6 +50,11 @@ module Vermillion
         expect(task.completed_at).to_not be_nil
         expect(task.failed?).to be true
       end
+    end
+
+    it "can construct the corresponding ActiveJob instance" do
+      task = create(:vermillion_task)
+      expect(task.job.ancestors).to include(::ActiveJob::Base)
     end
   end
 end

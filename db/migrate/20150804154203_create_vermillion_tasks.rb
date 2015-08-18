@@ -3,6 +3,7 @@ class CreateVermillionTasks < ActiveRecord::Migration
     enable_extension 'uuid-ossp'
 
     create_table :vermillion_tasks, id: :uuid do |t|
+      t.string :name, null: false
       t.json :description, null: false
       t.integer :progress
       t.integer :total

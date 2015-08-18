@@ -1,6 +1,7 @@
 FactoryGirl.define do
   factory :vermillion_task, class: 'Vermillion::Task' do
-    description(url: 'test.mp4')
+    name "vermillion/test"
+    description(url: "test.mp4")
 
     trait :running do
       progress 5

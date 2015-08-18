@@ -6,43 +6,49 @@ module Vermillion
 
     describe "POST #create" do
       context "with valid attributes" do
+        let(:valid_attributes) { { name: 'vermillion/test', description: { url: 'sample.mp4' } } }
         it "creates a task" do
           expect {
-            post :create, { url: 'sample.mp4' }
+            post :create, valid_attributes
           }.to change(Task, :count).by(1)
         end
 
         it "responds with :accepted" do
-          post :create, { url: 'sample.mp4' }
+          post :create, valid_attributes
           expect(response).to have_http_status(:accepted)
         end
 
         it "includes a Location header with the url of the task" do
-          post :create, { url: 'sample.mp4' }
+          post :create, valid_attributes
           expect(response.headers['Location']).to start_with("http://test.host/vermillion/tasks/")
+        end
+
+        it "launches the task" do
+          expect_any_instance_of(TestJob).to receive(:perform)
+          post :create, valid_attributes
         end
       end
 
       context "with invalid attributes" do
-        let(:bad_parameters) { { height: 20, width: 30 } }
+        let(:invalid_attributes) { { name: 'vermillion/test', description: { height: 20, width: 30 } } }
         it "does not create a task" do
           expect {
-            post :create, bad_parameters
+            post :create, invalid_attributes
           }.not_to change(Task, :count)
         end
 
         it "responds with :not_acceptable" do
-          post :create, bad_parameters
+          post :create, invalid_attributes
           expect(response).to have_http_status(:not_acceptable)
         end
 
         it "does not include a location header" do
-          post :create, bad_parameters
+          post :create, invalid_attributes
           expect(response.headers['Location']).to be_nil
         end
 
         it "includes a useful error message" do
-          post :create, {}
+          post :create, invalid_attributes
           expect(response.headers['Content-Type'].split(/;/).first).to eq 'application/json'
           expect(JSON.parse(response.body)).to eq("message" => "Validation failed", "errors" => { "description" => ["can't be blank"] })
         end

@@ -1,8 +1,15 @@
 module Vermillion
-  class Task < ActiveRecord::Base
-    validates :description, presence: true
+  class ::ClassnameValidator < ActiveModel::EachValidator
+    def validate_each(record, attribute, value)
+      record.job
+    rescue NameError
+      record.errors[attribute] << (options[:message] || "is not a valid class name")
+    end
+  end
 
-    after_create :launch
+  class Task < ActiveRecord::Base
+    validates :name, presence: true, classname: { message: "is not a job name" }
+    validates :description, presence: true
 
     EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp"
     scope :pending_tasks, -> { where(started_at: nil) }
@@ -12,8 +19,8 @@ module Vermillion
     scope :completed_tasks, -> { ended_tasks.where(failed: false) }
     scope :running_tasks, -> { where(completed_at: nil).where.not(started_at: nil) }
 
-    def launch
-      Rails.logger.warn "TODO: Launch task #{self.description.inspect}"
+    def job
+      @job ||= "#{name}_job".camelize.constantize
     end
 
     def status
@@ -35,7 +42,11 @@ module Vermillion
     end
 
     def expired_at
-      1.day.since(self.completed_at) if self.completed_at?
+      if self.completed_at?
+        1.day.since(self.completed_at)
+      else
+        1.day.since(self.updated_at)
+      end
     end
 
     def start!(total)

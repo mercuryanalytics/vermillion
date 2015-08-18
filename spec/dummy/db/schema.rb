@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 20150804154203) do
   enable_extension "uuid-ossp"
 
   create_table "vermillion_tasks", id: :uuid, default: "uuid_generate_v4()", force: :cascade do |t|
+    t.string   "name",                         null: false
     t.json     "description",                  null: false
     t.integer  "progress"
     t.integer  "total"
