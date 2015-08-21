@@ -30,7 +30,7 @@ module Vermillion
       end
 
       context "with invalid attributes" do
-        let(:invalid_attributes) { { name: 'vermillion/test', description: { height: 20, width: 30 } } }
+        let(:invalid_attributes) { { name: 'unknown', description: { height: 20, width: 30 } } }
         it "does not create a task" do
           expect {
             post :create, invalid_attributes
@@ -50,7 +50,7 @@ module Vermillion
         it "includes a useful error message" do
           post :create, invalid_attributes
           expect(response.headers['Content-Type'].split(/;/).first).to eq 'application/json'
-          expect(JSON.parse(response.body)).to eq("message" => "Validation failed", "errors" => { "description" => ["can't be blank"] })
+          expect(JSON.parse(response.body)).to eq("message" => "Validation failed", "errors" => { "name" => ["is not a job name"] })
         end
       end
     end

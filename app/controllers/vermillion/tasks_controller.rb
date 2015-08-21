@@ -52,25 +52,8 @@ module Vermillion
     end
 
     def task_params
-      params.require(:description).permit(
-        :url,
-        :filename,
-        :startTime,
-        :endTime,
-        :reticle,
-        :timeScale,
-        :tickScale,
-        :yMin,
-        :yMax,
-        :shellMin, {
-        labels: [],
-        lines: [
-          :label,
-          :color, {
-          mean: [],
-          up: [],
-          down: [],
-          }]})
+      params.require(:name)
+      params.require(:description)
     end
   end
 end
