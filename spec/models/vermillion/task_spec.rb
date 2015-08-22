@@ -56,5 +56,13 @@ module Vermillion
       task = create(:vermillion_task)
       expect(task.job.ancestors).to include(::ActiveJob::Base)
     end
+
+    class SampleJob < ActiveJob::Base
+    end
+
+    it "validates the description against the job's schema" do
+      task = build(:vermillion_task, name: "vermillion/sample", description: { property: "invalid description" })
+      expect(task).to be_valid
+    end
   end
 end

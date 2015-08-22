@@ -1,15 +1,24 @@
 module Vermillion
-  class ::ClassnameValidator < ActiveModel::EachValidator
-    def validate_each(record, attribute, value)
-      record.job
-    rescue NameError
-      record.errors[attribute] << (options[:message] || "is not a valid class name")
-    end
-  end
-
   class Task < ActiveRecord::Base
-    validates :name, presence: true, classname: { message: "is not a job name" }
     validates :description, presence: true
+
+    validate :description_validates_against_job_schema
+    def description_validates_against_job_schema
+      unless name
+        errors.add(:name, "is required")
+        return
+      end
+
+      begin
+        if job.respond_to? :description_schema
+          JSON::Validator.fully_validate(job.description_schema, description).each do |message|
+            errors.add(:description, message)
+          end
+        end
+      rescue NameError
+        errors[:name] << "is not a job name"
+      end
+    end
 
     EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp"
     scope :pending_tasks, -> { where(started_at: nil) }
