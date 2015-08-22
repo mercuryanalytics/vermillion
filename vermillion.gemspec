@@ -18,6 +18,11 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails", "~> 4.2.3"
+  s.add_dependency "coffee-rails"
+  s.add_dependency "coffee-rails-source-maps"
+  s.add_dependency "sass-rails"
+  s.add_dependency "slim-rails"
+  s.add_dependency "jbuilder"
 
   s.add_development_dependency "pg"
   s.add_development_dependency "rspec-rails"

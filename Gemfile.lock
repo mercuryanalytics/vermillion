@@ -2,7 +2,12 @@ PATH
   remote: .
   specs:
     vermillion (0.0.1)
+      coffee-rails
+      coffee-rails-source-maps
+      jbuilder
       rails (~> 4.2.3)
+      sass-rails
+      slim-rails
 
 GEM
   remote: https://rubygems.org/
@@ -178,17 +183,12 @@ PLATFORMS
 
 DEPENDENCIES
   capybara
-  coffee-rails
-  coffee-rails-source-maps
   database_cleaner
   factory_girl_rails
-  jbuilder
   pg
   pry-rails
   rspec-rails
-  sass-rails
   shoulda-matchers
-  slim-rails
   vermillion!
 
 BUNDLED WITH
