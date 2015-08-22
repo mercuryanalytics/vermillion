@@ -13,8 +13,6 @@ gemspec
 # To use a debugger
 # gem 'byebug', group: [:development, :test]
 
-gem 'json-schema'
-
 group :test do
   gem 'shoulda-matchers', require: false
 end

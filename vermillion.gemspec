@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency "sass-rails"
   s.add_dependency "slim-rails"
   s.add_dependency "jbuilder"
+  s.add_dependency "json-schema"
 
   s.add_development_dependency "pg"
   s.add_development_dependency "rspec-rails"
