@@ -157,7 +157,7 @@ task.promise.then((-> console.log "completed"), ((error) -> console.error "faile
 
 class @Vermillion
   constructor: (element, @serviceEndpoint = '/vermillion/tasks') ->
-    element = document.querySelector(element) if 'appendChild' not of element
+    element = document.querySelector(element) if typeof element == 'string'
     @_element = element.appendChild(tag('ul'))
     @_element.addEventListener 'discarded', (event) =>
       event.stopPropagation()
