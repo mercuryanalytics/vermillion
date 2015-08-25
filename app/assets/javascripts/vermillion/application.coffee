@@ -33,13 +33,13 @@ showTask = (url) ->
         when 410 then throw new Error("Gone")
         else throw new Error(response.statusText)
 
-createTask = (description) ->
-  fetch "/vermillion/tasks",
+createTask = (endpoint, details) ->
+  fetch endpoint,
       method: 'post'
       headers: 
         'Content-Type': 'application/json'
         'Accept': 'application/json'
-      body: JSON.stringify(description)
+      body: JSON.stringify(details)
     .then (response) ->
       throw new Error(response.status + " " + response.statusText) unless response.status == 202
       response.headers.get('Location')
@@ -138,8 +138,26 @@ updateTrackedUrls = (storage, storageKey, tasks) ->
   else
     storage.setItem storageKey, JSON.stringify(tasks)
 
+###
+# Sample usage:
+
+window.vermillion = new Vermillion(document.body, "/vermillion/tasks")
+vermillion.start()      # returns an array of already-running task objects, which can be ignored
+  # optionally pass the key under which the task list will be stored (defaults to "vermillionTasks", and the storage to use (defaults to window.localStorage)
+
+task = vermillion.run('job_type', { contents: "job description" })
+# progress events (typically used to update a progress bar)
+task.addEventListener 'progress', (event) -> console.log "progress", task.progress, '/', task.total
+# completed/failed events
+task.addEventListener 'completed', (event) -> console.log "completed", task
+task.addEventListener 'failed', (event) -> console.log "failed", task
+# alternatively:
+task.promise.then((-> console.log "completed"), ((error) -> console.error "failed", error))
+###
+
 class @Vermillion
-  constructor: (element) ->
+  constructor: (element, @serviceEndpoint = '/vermillion/tasks') ->
+    element = document.querySelector(element) if 'appendChild' not of element
     @_element = element.appendChild(tag('ul'))
     @_element.addEventListener 'discarded', (event) =>
       event.stopPropagation()
@@ -154,41 +172,11 @@ class @Vermillion
     @updateTrackedUrls()
     task.update()
 
-  start: (@storage = localStorage, @storageKey = "vermillionTasks") ->
+  start: (@storageKey = "vermillionTasks", @storage = localStorage) ->
     @_tasks[url] = new Task(@_element, url) for url in trackedUrls(@storage, @storageKey)
     delay(0).then => @update()
     task for url, task of @_tasks
 
   update: -> (task.update() for url, task of @_tasks)
 
-  run: (description) -> createTask(description).then (url) => @track(url)
-
-#################################### THE FOLLOWING IS FOR TESTING, AND SIMULATES WHAT THE HOST PAGE WILL DO #####################################
-logEvents = (event) -> console.log "CONTAINER SAW EVENT", event.type, event
-
-document.addEventListener "DOMContentLoaded", ->
-  div = document.body.insertBefore(tag('div'), document.body.firstChild)
-  div.addEventListener 'discarded', logEvents
-  div.addEventListener 'progress', logEvents
-  window.vermillion = new Vermillion(div)
-  tasks = vermillion.start()       # returns an array of task objects
-  console.log "start", tasks
-
-  # console.log "running", vermillion.run({ url: "test.mp4" })
-
-# want the following api:
-#    vermillion = new Vermillion(document.body)
-#    vermillion.start(window.localStorage, "vermillionTasks")   => [Task]               -- allows attaching event handlers early
-#    task = vermillion.run(description)                         => Task                 -- allows attaching event handlers on launch
-#    {status,description,...} = task                                                    -- accessors for control properties
-#    task.then({detail})
-#    task.catch(error)
-#    vermillion.addEventListener('change', function(event) { {task, href} = event.detail; });
-
-# localStorage.setItem("test", "this is a test");
-# localStorage.getItem("test") => "this is a test"
-# localStorage.removeItem("test")
-# localStorage.length => the number of keys
-# localStorage.key(n) => the nth key
-# localStorage.clear()
-# fires "storage" events with {key, oldValue, newValue, url, storageArea}
+  run: (name, description) -> createTask(@serviceEndpoint, { name, description }).then (url) => @track(url)
