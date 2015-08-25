@@ -34,6 +34,7 @@ showTask = (url) ->
         else throw new Error(response.statusText)
 
 createTask = (endpoint, details) ->
+  console?.log "POST to #{endpoint}", details
   fetch endpoint,
       method: 'post'
       headers: 
@@ -42,6 +43,7 @@ createTask = (endpoint, details) ->
       body: JSON.stringify(details)
     .then (response) ->
       throw new Error(response.status + " " + response.statusText) unless response.status == 202
+      console?.log "received", response
       response.headers.get('Location')
 
 class Task
@@ -179,4 +181,9 @@ class @Vermillion
 
   update: -> (task.update() for url, task of @_tasks)
 
-  run: (name, description) -> createTask(@serviceEndpoint, { name, description }).then (url) => @track(url)
+  run: (name, description) ->
+    createTask(@serviceEndpoint, { name, description })
+      .then (url) =>
+        console?.log "tracking", url
+        @track(url)
+      .catch (error) -> console?.error "createTask failed", error
