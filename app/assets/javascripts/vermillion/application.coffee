@@ -43,7 +43,7 @@ createTask = (endpoint, details) ->
       body: JSON.stringify(details)
     .then (response) ->
       throw new Error(response.status + " " + response.statusText) unless response.status == 202
-      console?.log "received", response
+      console?.log "received", response, response.headers.getAll()
       response.headers.get('Location')
 
 class Task
