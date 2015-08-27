@@ -1,5 +1,6 @@
 Vermillion::Engine.routes.draw do
   resources :tasks, except: %i(new edit update)
+  get :api, to: 'tasks#api'
 end
 =begin
 Routes for Vermillion::Engine:
@@ -7,4 +8,5 @@ Routes for Vermillion::Engine:
        POST   /tasks(.:format)     vermillion/tasks#create
   task GET    /tasks/:id(.:format) vermillion/tasks#show
        DELETE /tasks/:id(.:format) vermillion/tasks#destroy
+   api GET    /api(.:format)       vermillion/tasks#api
 =end

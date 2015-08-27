@@ -4,6 +4,12 @@ module Vermillion
   class TasksController < ApplicationController
     before_action :set_task, except: %i(index create)
 
+    def api
+      respond_to do |fmt|
+        fmt.js { redirect_to ActionController::Base.helpers.asset_path('application.js'), status: :temporary_redirect }
+      end
+    end
+
     def index
       @tasks = Task.all
     end
