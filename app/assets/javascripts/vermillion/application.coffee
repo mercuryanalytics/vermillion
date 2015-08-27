@@ -34,7 +34,6 @@ showTask = (url) ->
         else throw new Error(response.statusText)
 
 createTask = (endpoint, details) ->
-  console?.log "POST to #{endpoint}", details
   fetch endpoint,
       method: 'post'
       headers: 
@@ -183,6 +182,5 @@ class @Vermillion
   run: (name, description) ->
     createTask(@serviceEndpoint, { name, description })
       .then (url) =>
-        console?.log "tracking", url
         @track(url)
       .catch (error) -> console?.error "createTask failed", error
