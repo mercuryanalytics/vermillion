@@ -45,4 +45,9 @@ namespace :vermillion do
   task :fail, [:id] => :environment do |t,params|
     tasks_for(params[:id]).each {|task| task.fail! }
   end
+
+  desc "Delete expired tasks"
+  task :clean => :environment do |t,params|
+    Vermillion::Task.expired_tasks.destroy_all
+  end
 end
