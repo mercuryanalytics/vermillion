@@ -66,7 +66,11 @@ module Vermillion
       update(started_at: DateTime.now, total: total, progress: 0)
     end
 
-    def update_progress(n = 1)
+    def update_progress(n)
+      update!(progress: n)
+    end
+
+    def increment_progress(n = 1)
       increment!(:progress, n)
     end
 
