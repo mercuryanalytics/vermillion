@@ -26,7 +26,7 @@ updateTime = (element, d) ->
   element.setAttribute('datetime', d.toISOString())
 
 showTask = (url) ->
-  fetch(url, headers: { 'Accept': 'application/json' })
+  fetch(url, mode: 'cors', headers: { 'Accept': 'application/json' })
     .then (response) ->
       switch response.status
         when 200 then response.json()
@@ -34,15 +34,23 @@ showTask = (url) ->
         else throw new Error(response.statusText)
 
 createTask = (endpoint, details) ->
+  console.log "fetch", endpoint
   fetch endpoint,
       method: 'post'
+      mode: 'cors'
+      body: JSON.stringify(details)
       headers: 
         'Content-Type': 'application/json'
-        'Accept': 'application/json'
-      body: JSON.stringify(details)
+        Accept: 'application/json'
     .then (response) ->
-      throw new Error(response.status + " " + response.statusText) unless response.status == 202
-      response.headers.get('Location')
+      if response.ok
+        response.headers.get('Location')
+      else
+        console.warn response.status, response.statusText
+        response.json().then (detail) ->
+          error = new Error(response.status + " " + response.statusText)
+          error.detail = detail
+          Promise.reject(error)
 
 class Task
   constructor: (element, @url) ->
@@ -181,6 +189,5 @@ class @Vermillion
 
   run: (name, description) ->
     createTask(@serviceEndpoint, { name, description })
-      .then (url) =>
-        @track(url)
-      .catch (error) -> console?.error "createTask failed", error
+      .then (url) => @track(url)
+
