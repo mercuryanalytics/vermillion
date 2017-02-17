@@ -9,8 +9,6 @@ do ->
     CustomEvent.prototype = window.Event.prototype
     window.CustomEvent = CustomEvent
 
-delay = (ms) -> new Promise (resolve, reject) -> setTimeout(resolve, ms)
-
 text = (s) -> document.createTextNode(s)
 tag = (name, content..., attrs) ->
   result = document.createElement(name)
@@ -31,7 +29,11 @@ showTask = (url) ->
       switch response.status
         when 200 then response.json()
         when 410 then throw new Error("Gone")
-        else throw new Error(response.statusText)
+        else
+          response.body().then (body) ->
+            error = new Error(response.statusText)
+            error.detail = body
+            Promise.reject(error)
 
 createTask = (endpoint, details) ->
   fetch endpoint,
@@ -60,8 +62,8 @@ class Task
 
     @element = element.appendChild(tag('li', description, text(' '), status, text(' '), startedAt, text(' '), progress, text(' '), finishedAt))
 
-    future = undefined
-    promise = new Promise (resolve, reject) -> future = { resolve, reject }
+    @future = undefined
+    promise = new Promise (resolve, reject) => @future = { resolve, reject }
 
     Object.defineProperty @, 'promise',
       value: promise
@@ -73,11 +75,7 @@ class Task
 
     Object.defineProperty @, 'status',
       get: -> status.innerText
-      set: (v) ->
-        status.innerText = v
-        switch v
-          when 'completed' then future.resolve(this)
-          when 'failed' then future.reject(this)
+      set: (v) -> status.innerText = v
 
     Object.defineProperty @, 'startedAt',
       get: -> parseTime(startedAt.getAttribute('datetime'))
@@ -104,6 +102,7 @@ class Task
     Object.defineProperty @, 'discard',
       enumerable: false
       value: =>
+        clearTimeout(@timeout) if @timeout
         @element.dispatchEvent(new CustomEvent('discarded', bubbles: true, detail: this))
         element.removeChild(@element)
 
@@ -112,28 +111,32 @@ class Task
   dispatchEvent: -> @element.dispatchEvent(arguments...)
 
   update: ->
+    @timeout = null
     showTask(@url)
       .then ({task: detail}) =>
         @description = detail.description
-        @status = detail.status
         @startedAt = new Date(detail.started_at) if detail.started_at?
         @finishedAt = new Date(detail.started_at) if detail.finished_at?
         @total = detail.total
         @progress = detail.progress
+        @status = detail.status
         switch detail.status
           when 'pending'
-            delay(500).then => @update()
+            @timeout = setTimeout((=> @update()), 500)
           when 'running'
-            @element.dispatchEvent(new CustomEvent('progress', bubbles: true, detail: this))
-            delay(5000).then => @update()
+            @element.dispatchEvent(new CustomEvent('progress', bubbles: true, cancelable: false, detail: this))
+            @timeout = setTimeout((=> @update()), 5000)
           when 'failed'
-            @discard() if @element.dispatchEvent(new CustomEvent('failed', bubbles: true, detail: this))
+            @future?.reject(this)
+            @discard() if @element.dispatchEvent(new CustomEvent('failed', bubbles: true, cancelable: true, detail: this))
           when 'completed'
-            @discard() if @element.dispatchEvent(new CustomEvent('completed', bubbles: true, detail: this))
+            @future?.resolve(this)
+            @discard() if @element.dispatchEvent(new CustomEvent('completed', bubbles: true, cancelable: true, detail: this))
           else
             console?.error "unhandled status", detail.status
         this
       .catch (e) =>
+        console?.error "Vermillion task updated failed", e
         @discard()
         @
 
@@ -180,7 +183,7 @@ class @Vermillion
 
   start: (@storageKey = "vermillionTasks", @storage = localStorage) ->
     @_tasks[url] = new Task(@_element, url) for url in trackedUrls(@storage, @storageKey)
-    delay(0).then => @update()
+    setTimeout((=> @update()), 0)
     task for url, task of @_tasks
 
   update: -> (task.update() for url, task of @_tasks)
