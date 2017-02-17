@@ -34,7 +34,6 @@ showTask = (url) ->
         else throw new Error(response.statusText)
 
 createTask = (endpoint, details) ->
-  console.log "fetch", endpoint
   fetch endpoint,
       method: 'post'
       mode: 'cors'
@@ -46,7 +45,6 @@ createTask = (endpoint, details) ->
       if response.ok
         response.headers.get('Location')
       else
-        console.warn response.status, response.statusText
         response.json().then (detail) ->
           error = new Error(response.status + " " + response.statusText)
           error.detail = detail
