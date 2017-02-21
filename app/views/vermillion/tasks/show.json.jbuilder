@@ -8,8 +8,8 @@ json.task do
     json.progress @task.progress
     json.total @task.total
   when :completed, :failed
-    json.started_at @task.started_at.iso8601
-    json.completed_at @task.completed_at.iso8601
+    json.started_at @task.started_at.iso8601 if @task.started_at
+    json.completed_at @task.completed_at.iso8601 if @task.started_at
     json.progress @task.progress
     json.total @task.total
   end
