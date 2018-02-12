@@ -15,7 +15,7 @@ module Vermillion
     end
 
     def create
-      description = task_params
+      description = task_params.with_indifferent_access
       name = params[:name]
       @task = Task.new(name: name, description: description)
       if @task.valid?
