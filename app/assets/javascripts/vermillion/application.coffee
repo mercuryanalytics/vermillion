@@ -40,7 +40,7 @@ createTask = (endpoint, details) ->
       method: 'post'
       mode: 'cors'
       body: JSON.stringify(details)
-      headers: 
+      headers:
         'Content-Type': 'application/json'
         Accept: 'application/json'
     .then (response) ->
@@ -103,7 +103,7 @@ class Task
       enumerable: false
       value: =>
         clearTimeout(@timeout) if @timeout
-        @element.dispatchEvent(new CustomEvent('discarded', bubbles: true, detail: this))
+        @element.dispatchEvent(new CustomEvent('discarded', bubbles: true, detail: @))
         element.removeChild(@element)
 
   addEventListener: -> @element.addEventListener(arguments...)
@@ -116,7 +116,7 @@ class Task
       .then ({task: detail}) =>
         @description = detail.description
         @startedAt = new Date(detail.started_at) if detail.started_at?
-        @finishedAt = new Date(detail.started_at) if detail.finished_at?
+        @finishedAt = new Date(detail.finished_at) if detail.finished_at?
         @total = detail.total
         @progress = detail.progress
         @status = detail.status
@@ -124,17 +124,17 @@ class Task
           when 'pending'
             @timeout = setTimeout((=> @update()), 500)
           when 'running'
-            @element.dispatchEvent(new CustomEvent('progress', bubbles: true, cancelable: false, detail: this))
+            @element.dispatchEvent(new CustomEvent('progress', bubbles: true, cancelable: false, detail: @))
             @timeout = setTimeout((=> @update()), 5000)
           when 'failed'
-            @future?.reject(this)
-            @discard() if @element.dispatchEvent(new CustomEvent('failed', bubbles: true, cancelable: true, detail: this))
+            @future?.reject(@)
+            @discard() if @element.dispatchEvent(new CustomEvent('failed', bubbles: true, cancelable: true, detail: @))
           when 'completed'
-            @future?.resolve(this)
-            @discard() if @element.dispatchEvent(new CustomEvent('completed', bubbles: true, cancelable: true, detail: this))
+            @future?.resolve(@)
+            @discard() if @element.dispatchEvent(new CustomEvent('completed', bubbles: true, cancelable: true, detail: @))
           else
             console?.error "unhandled status", detail.status
-        this
+        @
       .catch (e) =>
         console?.error "Vermillion task updated failed", e
         @discard()

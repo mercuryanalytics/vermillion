@@ -1,0 +1,18 @@
+{
+  "duplicate_key": { "level": "error" },
+  "ensure_comprehensions": { "level": "warn" },
+  "indentation": { "value": 2, "level": "error" },
+  "line_endings": { "level": "warn", "value": "unix" },
+  "max_line_length": { "level": "ignore" },
+  "no_backticks": { "level": "warn" },
+  "no_debugger": { "level": "warn", "console": false },
+  "no_nested_string_interpolation": { "level": "warn" },
+  "no_private_function_fat_arrows": { "level": "warn" },
+  "no_tabs": { "level": "error" },
+  "no_this": { "level": "warn" },
+  "no_throwing_strings": { "level": "error" },
+  "no_trailing_semicolons": { "level": "error" },
+  "no_trailing_whitespace": { "level": "error", "allowed_in_comments": false, "allowed_in_empty_lines": false },
+  "no_unnecessary_fat_arrows": { "level": "warn" },
+  "transform_messes_up_line_numbers": { "level": "warn" }
+}
