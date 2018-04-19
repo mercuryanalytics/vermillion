@@ -136,7 +136,7 @@ class Task
             console?.error "unhandled status", detail.status
         @
       .catch (e) =>
-        console?.error "Vermillion task updated failed", e
+        console?.error "Vermillion task update failed", e
         @discard()
         @
 

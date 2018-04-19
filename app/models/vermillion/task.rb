@@ -20,12 +20,12 @@ module Vermillion
       end
     end
 
-    EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp"
+    EXPIRED_PREDICATE = "completed_at + INTERVAL '1 day' < current_timestamp".freeze
     scope :pending_tasks, -> { where(started_at: nil) }
     scope :expired_tasks, -> { where(EXPIRED_PREDICATE) }
-    scope :ended_tasks, -> { where.not(EXPIRED_PREDICATE) }
-    scope :failed_tasks, -> { ended_tasks.where(failed: true) }
-    scope :completed_tasks, -> { ended_tasks.where(failed: false) }
+    scope :live_tasks, -> { where.not(EXPIRED_PREDICATE) }
+    scope :failed_tasks, -> { live_tasks.where(failed: true) }
+    scope :completed_tasks, -> { live_tasks.where(failed: false) }
     scope :running_tasks, -> { where(completed_at: nil).where.not(started_at: nil) }
 
     def job
@@ -37,13 +37,13 @@ module Vermillion
     end
 
     def status
-      if self.expired?
+      if expired?
         :expired
-      elsif self.failed?
+      elsif failed?
         :failed
-      elsif self.completed_at?
+      elsif completed_at?
         :completed
-      elsif self.started_at?
+      elsif started_at?
         :running
       else
         :pending
@@ -51,19 +51,19 @@ module Vermillion
     end
 
     def expired?
-      self.completed_at? && self.expired_at.past?
+      completed_at? && expired_at.past?
     end
 
     def expired_at
-      if self.completed_at?
-        1.day.since(self.completed_at)
+      if completed_at?
+        1.day.since(completed_at)
       else
-        1.day.since(self.updated_at)
+        1.day.since(updated_at)
       end
     end
 
     def start!(total)
-      update(started_at: DateTime.now, total: total, progress: 0)
+      update(started_at: Time.now, total: total, progress: 0)
     end
 
     def update_progress(n)
@@ -77,15 +77,15 @@ module Vermillion
     end
 
     def finish!(results = nil)
-      self.description.merge!(results) unless results.nil?
-      self.progress = self.total
-      self.completed_at = DateTime.now
+      description.merge!(results) unless results.nil?
+      self.progress = total
+      self.completed_at = Time.now
       save
     end
 
     def fail!(results = nil)
-      self.description.merge!(results) unless results.nil?
-      self.completed_at = DateTime.now
+      description.merge!(results) unless results.nil?
+      self.completed_at = Time.now
       self.failed = true
       save
     end
