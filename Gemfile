@@ -14,5 +14,6 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 group :test do
-  gem 'shoulda-matchers', require: false
+  gem "rails-controller-testing"
+  gem "shoulda-matchers", require: false
 end

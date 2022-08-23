@@ -35,10 +35,10 @@ module Vermillion
         fmt.json do
           if @task
             if @task.expired?
-              render nothing: true, status: :gone
+              render body: nil, status: :gone
             end
           else
-            render nothing: true, status: :not_found
+            render body: nil, status: :not_found
           end
         end
       end
@@ -46,9 +46,9 @@ module Vermillion
 
     def destroy
       if @task
-        render nothing: true, status: :no_content
+        render body: nil, status: :no_content
       else
-        render nothing: true, status: :not_found
+        render body: nil, status: :not_found
       end
     end
 
