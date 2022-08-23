@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
 
-  s.add_dependency "rails", "= 5.2.8.1"
+  s.add_dependency "rails", "= 6.0.5.1"
   s.add_dependency "coffee-rails"
   s.add_dependency "coffee-rails-source-maps"
   s.add_dependency "sass-rails"
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency "json-schema"
 
   s.add_development_dependency "pg"
+  s.add_development_dependency "webpacker"
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "capybara"
   s.add_development_dependency "factory_bot_rails"
