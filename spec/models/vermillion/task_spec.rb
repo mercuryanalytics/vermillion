@@ -2,7 +2,10 @@ require 'rails_helper'
 
 module Vermillion
   RSpec.describe Task, type: :model do
-    it { is_expected.to validate_presence_of :description }
+
+    it "validates description is present" do
+      expect(:description).to be_present
+    end
 
     it "can tell whether the task is expired" do
       expect(build(:vermillion_task, :expired)).to be_expired
@@ -28,10 +31,10 @@ module Vermillion
         expect(task.progress).to eq 5
         expect(task.total).to eq 10
         expect {
-          task.update_progress
+          task.increment_progress
         }.to change(task, :progress).by 1
         expect {
-          task.update_progress(4)
+          task.increment_progress(4)
         }.to change(task, :progress).by 4
         expect(task.progress).to eq 10
         expect(task.status).to be :running
