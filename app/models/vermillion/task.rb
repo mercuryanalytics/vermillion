@@ -16,7 +16,7 @@ module Vermillion
           end
         end
       rescue NameError
-        errors[:name] << "is not a job name"
+        errors.add(:name, "is not a job name")
       end
     end
 
