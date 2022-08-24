@@ -57,8 +57,8 @@ module Vermillion
 
     describe "GET #index" do
       before do
-        create(:vermillion_task)
-        create(:vermillion_task)
+        FactoryBot.create(:vermillion_task)
+        FactoryBot.create(:vermillion_task)
       end
 
       it "populates an array of tasks" do
