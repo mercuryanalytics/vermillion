@@ -3,7 +3,7 @@ module Vermillion
     isolate_namespace Vermillion
 
     initializer "Vermillion.assets.precompile" do |app|
-      app.config.assets.precompile += %w( application.js )
+      app.config.assets.precompile += %w( vermillion/application.js )
     end
 
     config.generators do |g|
