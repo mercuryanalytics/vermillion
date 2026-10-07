@@ -15,5 +15,4 @@ gemspec
 
 group :test do
   gem "rails-controller-testing"
-  gem "shoulda-matchers", require: false
 end

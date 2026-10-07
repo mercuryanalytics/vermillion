@@ -2,9 +2,8 @@ require 'rails_helper'
 
 module Vermillion
   RSpec.describe Task, type: :model do
-
-    it "validates description is present" do
-      expect(:description).to be_present
+    it "has a valid factory" do
+      expect(build(:vermillion_task)).to be_valid
     end
 
     it "can tell whether the task is expired" do
