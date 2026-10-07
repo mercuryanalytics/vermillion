@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", "~> 8.1"
   s.add_dependency "sprockets-rails"
   s.add_dependency "coffee-rails"
-  s.add_dependency "coffee-rails-source-maps"
   s.add_dependency "slim-rails"
   s.add_dependency "jbuilder"
   s.add_dependency "json-schema"
