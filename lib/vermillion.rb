@@ -1,3 +1,4 @@
+require "sprockets/railtie"
 require "coffee-rails"
 require "slim-rails"
 require "jbuilder"
