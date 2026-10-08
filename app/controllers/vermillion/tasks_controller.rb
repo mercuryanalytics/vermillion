@@ -1,5 +1,3 @@
-require_dependency "vermillion/application_controller"
-
 module Vermillion
   class TasksController < ApplicationController
     before_action :set_task, except: %i(index create)
