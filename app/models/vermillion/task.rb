@@ -1,5 +1,5 @@
 module Vermillion
-  class Task < ActiveRecord::Base
+  class Task < ApplicationRecord
     validates :description, presence: true
 
     validate :description_validates_against_job_schema
