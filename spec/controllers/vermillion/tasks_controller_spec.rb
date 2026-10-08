@@ -84,6 +84,15 @@ module Vermillion
         get :index
         expect(response).to render_template :index
       end
+
+      context "with views rendered" do
+        render_views
+
+        it "links the engine's precompiled assets" do
+          get :index
+          expect(response.body).to include("vermillion/application")
+        end
+      end
     end
 
     describe "GET #show" do
