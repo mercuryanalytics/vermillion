@@ -44,6 +44,7 @@ module Vermillion
 
     def destroy
       if @task
+        @task.destroy
         render body: nil, status: :no_content
       else
         render body: nil, status: :not_found

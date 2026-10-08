@@ -126,5 +126,29 @@ module Vermillion
         end
       end
     end
+
+    describe "DELETE #destroy" do
+      context "with a valid id" do
+        let!(:task) { create(:vermillion_task) }
+
+        it "deletes the task" do
+          expect {
+            delete :destroy, params: { id: task.id }
+          }.to change(Task, :count).by(-1)
+        end
+
+        it "responds with :no_content" do
+          delete :destroy, params: { id: task.id }
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+
+      context "with an invalid id" do
+        it "responds with :not_found" do
+          delete :destroy, params: { id: 'something-arbitrary' }
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+    end
   end
 end
