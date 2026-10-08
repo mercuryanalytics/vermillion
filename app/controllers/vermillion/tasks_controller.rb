@@ -57,7 +57,7 @@ module Vermillion
 
     def task_params
       params.require(:name)
-      params.require(:description)
+      params.require(:description).to_unsafe_h
     end
   end
 end
