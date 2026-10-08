@@ -13,22 +13,23 @@ Gem::Specification.new do |s|
   s.summary     = "Summary of Vermillion."
   s.description = "Description of Vermillion."
   s.license     = "MIT"
+  s.required_ruby_version = ">= 3.2"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["spec/**/*"]
 
-  s.add_dependency "rails", "~> 4"
+  s.add_dependency "rails", "~> 8.1"
+  s.add_dependency "sprockets-rails"
   s.add_dependency "coffee-rails"
-  s.add_dependency "coffee-rails-source-maps"
-  s.add_dependency "sass-rails"
   s.add_dependency "slim-rails"
   s.add_dependency "jbuilder"
   s.add_dependency "json-schema"
 
   s.add_development_dependency "pg"
   s.add_development_dependency "rspec-rails"
+  s.add_development_dependency "rails-controller-testing"
   s.add_development_dependency "capybara"
-  s.add_development_dependency "factory_girl_rails"
+  s.add_development_dependency "factory_bot_rails"
   s.add_development_dependency "database_cleaner"
   s.add_development_dependency "pry-rails"
 end

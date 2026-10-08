@@ -1,5 +1,5 @@
 module Vermillion
-  class TestJob < ActiveJob::Base
+  class TestJob < ApplicationJob
     def perform(*args)
     end
 
