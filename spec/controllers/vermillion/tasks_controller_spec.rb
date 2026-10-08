@@ -27,6 +27,20 @@ module Vermillion
           expect(TestJob).to receive(:perform_later)
           post :create, params: valid_attributes
         end
+
+        context "with forgery protection on" do
+          around do |example|
+            ActionController::Base.allow_forgery_protection = true
+            example.run
+          ensure
+            ActionController::Base.allow_forgery_protection = false
+          end
+
+          it "accepts a cross-origin request without an authenticity token" do
+            post :create, params: valid_attributes
+            expect(response).to have_http_status(:accepted)
+          end
+        end
       end
 
       context "with invalid attributes" do
