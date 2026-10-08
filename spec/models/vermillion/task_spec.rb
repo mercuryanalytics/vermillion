@@ -6,6 +6,12 @@ module Vermillion
       expect(build(:vermillion_task)).to be_valid
     end
 
+    it "requires a description" do
+      task = build(:vermillion_task, description: nil)
+      expect(task).to_not be_valid
+      expect(task.errors[:description]).to include("can't be blank")
+    end
+
     it "can tell whether the task is expired" do
       expect(build(:vermillion_task, :expired)).to be_expired
     end
@@ -37,6 +43,20 @@ module Vermillion
         }.to change(task, :progress).by 4
         expect(task.progress).to eq 10
         expect(task.status).to be :running
+      end
+
+      it "sets progress without logging the update" do
+        task = create(:vermillion_task, :running)
+        log = StringIO.new
+        logger = ActiveSupport::Logger.new(log)
+        Rails.logger.broadcast_to(logger)
+        begin
+          task.update_progress(7)
+        ensure
+          Rails.logger.stop_broadcasting_to(logger)
+        end
+        expect(task.reload.progress).to eq 7
+        expect(log.string).to be_empty
       end
 
       it "updates the status when the task is finished" do
