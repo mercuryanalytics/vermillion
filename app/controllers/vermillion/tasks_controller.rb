@@ -16,8 +16,7 @@ module Vermillion
       description = task_params
       name = params[:name]
       @task = Task.new(name: name, description: description)
-      if @task.valid?
-        @task.save
+      if @task.save
         @task.perform_later
         head :accepted, location: @task
       else
@@ -44,7 +43,6 @@ module Vermillion
 
     def destroy
       if @task
-        @task.destroy
         render body: nil, status: :no_content
       else
         render body: nil, status: :not_found
@@ -58,7 +56,8 @@ module Vermillion
 
     def task_params
       params.require(:name)
-      params.require(:description).to_unsafe_h
+      description = params.require(:description)
+      description.respond_to?(:to_unsafe_h) ? description.to_unsafe_h : description
     end
   end
 end

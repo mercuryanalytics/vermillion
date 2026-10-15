@@ -30,13 +30,15 @@ module Vermillion
 
         context "with forgery protection on" do
           around do |example|
+            original = ActionController::Base.allow_forgery_protection
             ActionController::Base.allow_forgery_protection = true
             example.run
           ensure
-            ActionController::Base.allow_forgery_protection = false
+            ActionController::Base.allow_forgery_protection = original
           end
 
           it "accepts a cross-origin request without an authenticity token" do
+            request.headers["Origin"] = "https://talaria.example"
             post :create, params: valid_attributes
             expect(response).to have_http_status(:accepted)
           end
@@ -59,6 +61,11 @@ module Vermillion
         it "does not include a location header" do
           post :create, params: invalid_attributes
           expect(response.headers['Location']).to be_nil
+        end
+
+        it "responds with :not_acceptable to a scalar description" do
+          post :create, params: { name: 'vermillion/test', description: 'sample.mp4' }
+          expect(response).to have_http_status(:not_acceptable)
         end
 
         it "includes a useful error message" do
@@ -90,7 +97,8 @@ module Vermillion
 
         it "links the engine's precompiled assets" do
           get :index
-          expect(response.body).to include("vermillion/application")
+          expect(response.body).to match(%r{<link[^>]+href="[^"]*vermillion/application[^"]*\.css"})
+          expect(response.body).to match(%r{<script[^>]+src="[^"]*vermillion/application[^"]*\.js"})
         end
       end
     end
@@ -131,10 +139,10 @@ module Vermillion
       context "with a valid id" do
         let!(:task) { create(:vermillion_task) }
 
-        it "deletes the task" do
+        it "leaves the task in place" do
           expect {
             delete :destroy, params: { id: task.id }
-          }.to change(Task, :count).by(-1)
+          }.not_to change(Task, :count)
         end
 
         it "responds with :no_content" do
