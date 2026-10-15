@@ -1,4 +1,4 @@
-class CreateVermillionTasks < ActiveRecord::Migration
+class CreateVermillionTasks < ActiveRecord::Migration[4.2]
   def change
     enable_extension 'uuid-ossp'
 
