@@ -4,7 +4,7 @@ module Vermillion
 
     def api
       respond_to do |fmt|
-        fmt.js { redirect_to ActionController::Base.helpers.asset_path('vermillion/application.js'), status: :temporary_redirect }
+        fmt.js { redirect_to ActionController::Base.helpers.asset_path('vermillion/application.js'), status: :temporary_redirect, allow_other_host: true }
       end
     end
 

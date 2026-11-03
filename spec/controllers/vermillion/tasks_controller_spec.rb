@@ -4,6 +4,23 @@ module Vermillion
   RSpec.describe TasksController, type: :controller do
     routes { Engine.routes }
 
+    describe "GET #api" do
+      context "with an asset host" do
+        around do |example|
+          original = ActionController::Base.asset_host
+          ActionController::Base.asset_host = "https://cdn.example"
+          example.run
+        ensure
+          ActionController::Base.asset_host = original
+        end
+
+        it "redirects to the script on the asset host" do
+          get :api, format: :js
+          expect(response).to redirect_to(%r{\Ahttps://cdn\.example/assets/vermillion/application-\h+\.js\z})
+        end
+      end
+    end
+
     describe "POST #create" do
       context "with valid attributes" do
         let(:valid_attributes) { { name: 'vermillion/test', description: { url: 'sample.mp4' } } }
