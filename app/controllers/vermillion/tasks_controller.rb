@@ -1,12 +1,10 @@
-require_dependency "vermillion/application_controller"
-
 module Vermillion
   class TasksController < ApplicationController
     before_action :set_task, except: %i(index create)
 
     def api
       respond_to do |fmt|
-        fmt.js { redirect_to ActionController::Base.helpers.asset_path('vermillion/application.js'), status: :temporary_redirect }
+        fmt.js { redirect_to ActionController::Base.helpers.asset_path('vermillion/application.js'), status: :temporary_redirect, allow_other_host: true }
       end
     end
 
@@ -15,13 +13,12 @@ module Vermillion
     end
 
     def create
-      description = task_params.with_indifferent_access
+      description = task_params
       name = params[:name]
       @task = Task.new(name: name, description: description)
-      if @task.valid?
-        @task.save
+      if @task.save
         @task.perform_later
-        render nothing: true, status: :accepted, location: @task
+        head :accepted, location: @task
       else
         render json: { message: "Validation failed", errors: @task.errors }, status: :not_acceptable
       end
@@ -35,10 +32,10 @@ module Vermillion
         fmt.json do
           if @task
             if @task.expired?
-              render nothing: true, status: :gone
+              render body: nil, status: :gone
             end
           else
-            render nothing: true, status: :not_found
+            render body: nil, status: :not_found
           end
         end
       end
@@ -46,9 +43,9 @@ module Vermillion
 
     def destroy
       if @task
-        render nothing: true, status: :no_content
+        render body: nil, status: :no_content
       else
-        render nothing: true, status: :not_found
+        render body: nil, status: :not_found
       end
     end
 
@@ -59,7 +56,8 @@ module Vermillion
 
     def task_params
       params.require(:name)
-      params.require(:description)
+      description = params.require(:description)
+      description.respond_to?(:to_unsafe_h) ? description.to_unsafe_h : description
     end
   end
 end

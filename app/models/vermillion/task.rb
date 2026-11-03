@@ -1,5 +1,5 @@
 module Vermillion
-  class Task < ActiveRecord::Base
+  class Task < ApplicationRecord
     validates :description, presence: true
 
     validate :description_validates_against_job_schema
@@ -16,7 +16,7 @@ module Vermillion
           end
         end
       rescue NameError
-        errors[:name] << "is not a job name"
+        errors.add(:name, "is not a job name")
       end
     end
 
@@ -63,7 +63,7 @@ module Vermillion
     end
 
     def start!(total)
-      update(started_at: Time.now, total: total, progress: 0)
+      update(started_at: Time.current, total: total, progress: 0)
     end
 
     def update_progress(n)
@@ -79,13 +79,13 @@ module Vermillion
     def finish!(results = nil)
       description.merge!(results) unless results.nil?
       self.progress = total
-      self.completed_at = Time.now
+      self.completed_at = Time.current
       save
     end
 
     def fail!(results = nil)
       description.merge!(results) unless results.nil?
-      self.completed_at = Time.now
+      self.completed_at = Time.current
       self.failed = true
       save
     end
