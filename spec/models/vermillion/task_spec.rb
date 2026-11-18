@@ -59,6 +59,13 @@ module Vermillion
         expect(log.string).to be_empty
       end
 
+      it "sets progress without validating the description" do
+        task = create(:vermillion_task, :running)
+        expect(task).not_to receive(:description_validates_against_job_schema)
+        task.update_progress(7)
+        expect(task.reload.progress).to eq 7
+      end
+
       it "updates the status when the task is finished" do
         task = create(:vermillion_task, :running)
         task.finish!
