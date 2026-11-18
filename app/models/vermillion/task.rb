@@ -68,7 +68,7 @@ module Vermillion
 
     def update_progress(n)
       Rails.logger.silence do
-        update!(progress: n)
+        update_column(:progress, n)
       end
     end
 
